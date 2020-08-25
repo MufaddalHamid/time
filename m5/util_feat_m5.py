@@ -256,8 +256,6 @@ def features_lag(df):
 ''''
 import pandas as pd
 import numpy as np
-from sklearn import preprocessing
-import datetime
 from sklearn.preprocessing import MinMaxScaler
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
@@ -265,7 +263,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers.embeddings import Embedding
-def date_transform:
+def date_transform():
 	df=pd.read_csv('calendar.csv')
 	df['date'] = pd.to_datetime(df['date'])
 	df['year'] = df['date'].dt.year
@@ -299,53 +297,51 @@ def date_transform:
 	padded_docs2 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
 	values=df[df['snap_CA','snap_TX']]
 	return new_df,padded_docs1,padded_docs2,values
-def sales:
-	sales=pd.read_csv('sell_prices.csv')
-	sales['dept_id']=str(sales['item_id'])
-	def remove(x):
-    	value=x.split('_')
-   	    dept=value[0]+"_"+value[1]
-    	return dept
+def sales():
+    sales=pd.read_csv('sell_prices.csv')
+    sales['dept_id']=str(sales['item_id'])
+    def remove(x):
+        value=x.split('_')
+        dept=value[0]+"_"+value[1]
+        return dept
     sales['dept']=sales['item_id'].apply(remove)
     price_sum=pd.DataFrame(sales.groupby('wm_yr_wk')['sell_price'].sum())
     scaler = MinMaxScaler()
     scaler.fit(price_sum)
     price_sum['normalized']=scaler.transform(price_sum)
     x=pd.DataFrame(sales.groupby('dept')['sell_price'].unique())
-	x.reset_index(inplace=True)
-	def recive(v):
+    x.reset_index(inplace=True)
+    def recive(v):
     	sum=0
     	for i in v:
-        sum+=i
+            sum+=i
     	return round(sum,2)
-
-	x['summed']=x['sell_price'].apply(recive)
-	scaler = MinMaxScaler()
-	x.set_index(keys='dept',inplace=True)
-	x.drop('sell_price',inplace=True,axis=1)
-	scaler.fit(x)
-	x['transformed']=scaler.transform(x)
-	return price_sum,x
-def sales_validation:
-	sales_eval=pd.read_csv('sales_train_validation.csv')
-	TARGET='sales'
-	index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
-	sales_eval = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
-	temp_df = sales_eval[['id','d',TARGET]]
-	#lag=1
-	i=1
-	print('Shifting:', i)
-	temp_df['lag_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))	
-	#Moving avg=(7,28)
-	temp_df1 = sales_eval[['id','d','sales']]
-	for i in [7,28]:
-    	print('Rolling period:', i)
-    	temp_df['rolling_mean_'+str(i)] = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
-    	temp_df['rolling_std_'+str(i)]  = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
-    	return temp_df
+    x['summed']=x['sell_price'].apply(recive)
+    scaler = MinMaxScaler()
+    x.set_index(keys='dept',inplace=True)
+    x.drop('sell_price',inplace=True,axis=1)
+    scaler.fit(x)
+    x['transformed']=scaler.transform(x)
+    return price_sum,x
+def sales_validation():
+    sales_eval=pd.read_csv('sales_train_validation.csv')
+    TARGET='sales'
+    index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
+    sales_eval = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
+    temp_df = sales_eval[['id','d',TARGET]]
+    #lag=1
+    i=1
+    print('Shifting:', i)
+    temp_df['lag_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))
+    #Moving avg=(7,28)
+    temp_df1 = sales_eval[['id','d','sales']]
+    for i in [7,28]:
+        print('Rolling period:', i)
+        temp_df['rolling_mean_'+str(i)] = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
+        temp_df['rolling_std_'+str(i)]  = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
+        return temp_df
+#program ended last function
 '''
- 
-  
   
   
   
