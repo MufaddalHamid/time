@@ -359,6 +359,7 @@ def sales_validation:
     	temp_df['rolling_mean_'+str(i)] = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
     	temp_df['rolling_std_'+str(i)]  = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
     	return temp_df
+#end over here
 '''
  
   
