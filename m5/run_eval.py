@@ -457,4 +457,23 @@ def test_old():
 	df_metrics['metric_val'] = pd.Series(pred_mse[:300], index=dataframe.index) 
 	df_metrics.to_csv("run_eval.csv")
 """
-	
+'''
+from util_feat_m5 import *
+values_1=features_time_basic()
+values_2=features_normalize()
+values_5=features_embed()
+values_3=features_lag()
+values_4=features_rolling()
+value=pd.DataFrame(values_1[1],columns=['embbed_event_name_1','embed_event_name_2'])
+value_1=pd.DataFrame(values_1[2],columns=['embed_event_type'])
+ready_merge=value.merge(value_1,left_index=True,right_index=True)
+comb_1=pd.concat([values_1[0],values_1[3],ready_merge],axis=1)
+comb_2=pd.concat([values_2[0].reset_index(),values_2[1].reset_index()],axis=1)
+comb_2.drop('index',axis=1,inplace=True)
+comb_3=pd.concat([values_3,values_4],axis=1)
+comb_3.drop(['d','sales','id'],axis=1,inplace=True)
+df=pd.concat([comb_1,comb_2,comb_3,values_5],axis=1)
+df.set_index(keys='item_id')
+df.drop('item_id',axis=1,inplace=True)
+df.to_parquet("features.paraquet")
+'''
