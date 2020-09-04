@@ -458,4 +458,34 @@ def test_old():
 	df_metrics['metric_val'] = pd.Series(pred_mse[:300], index=dataframe.index) 
 	df_metrics.to_csv("run_eval.csv")
 """
+'''
+from util_feat_m5 import *
+def features_call(dir_in):
+    sales_eval=pd.read_csv( dir_in + '/sales_train_val.csv')
+    cal=pd.read_csv( dir_in +'calendar.csv')
+    sales=pd.read_csv(dir_in +'sell_prices.csv')
+    time_features=features_time_basic(cal)
+    sales_features=features_normalize(sales,cal)
+    sales_val_embed=features_embed(sales_eval)
+    sales_val_lag=features_lag(sales_eval)
+    sales_val_roll=features_rolling(sales_eval)
+    value=pd.DataFrame(time_features[1],columns=['embbed_event_name_1','embed_event_name_2'])
+    value_merge=pd.DataFrame(time_features[2],columns=['embed_event_type'])
+    merge_values=value.merge(value_merge,left_index=True,right_index=True)
+    comb_1=pd.concat([time_features[0],time_features[3],merge_values],axis=1)
+    comb_2=pd.concat([sales_features[0].reset_index(),sales_features[1].reset_index()],axis=1)
+    comb_2.drop('index',axis=1,inplace=True)
+    comb_3=pd.concat([sales_val_lag,sales_val_roll],axis=1)
+    comb_3.drop(['d','sales','id'],axis=1,inplace=True)
+    df=pd.concat([comb_1,comb_2,comb_3,sales_val_embed],axis=1)
+    df.set_index(keys='item_id')
+    df.drop('item_id',axis=1,inplace=True)
+    return df
+#path is equal to directory location
+df=features_call(path)
+to_Paraquet(df)
+def to_Paraquet(df,dir_out):
+    df.to_parquet(dir_out+"/features.paraquet")
+
+'''
 	
