@@ -291,93 +291,116 @@ def features_lag(df):
 ''''
 import pandas as pd
 import numpy as np
-from sklearn import preprocessing
-import datetime
 from sklearn.preprocessing import MinMaxScaler
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Flatten
-from keras.layers.embeddings import Embedding
-def date_transform:
-	df=pd.read_csv('calendar.csv')
-	df['date'] = pd.to_datetime(df['date'])
-	df['year'] = df['date'].dt.year
-	df['month'] = df['date'].dt.month
-	df['week'] = df['date'].dt.week
-	df['day'] = df['date'].dt.day
-	df['dayofweek'] = df['date'].dt.dayofweek
-	date_cols=df[['wday','month','year','week','day']]
+#sales_eval=pd.read_csv('sales_train_validation.csv')
+#cal=pd.read_csv('calendar.csv')
+#sales=pd.read_csv('sell_prices.csv')
+def features_time_basic(cal):
+	cal['date'] = pd.to_datetime(cal['date'])
+	cal['year'] = cal['date'].dt.year
+	cal['month'] = cal['date'].dt.month
+	cal['week'] = cal['date'].dt.week
+	cal['day'] = cal['date'].dt.day
+	cal['dayofweek'] = cal['date'].dt.dayofweek
+	date_cols=cal[['wday','month','year','week','day']]
 	scaler = MinMaxScaler(feature_range=(-0.5,0.5))
 	scaler.fit(date_cols)
 	transformed=scaler.transform(date_cols)
-	new_df=pd.DataFrame(transformed,columns=date_cols.columns)
-	embeded=df[['event_name_1','event_type_1','event_name_2','event_type_2']]
+	new_cal=pd.DataFrame(transformed,columns=date_cols.columns)
+	embeded=cal[['event_name_1','event_type_1','event_name_2','event_type_2']]
 	unique=embeded['event_name_1'].unique()
 	unique_vals=np.append(unique,embeded['event_name_2'].unique())
-	event=pd.DataFrame(unique_vals,)
-	array_nm=event['event'].unique()
-	list_array=str(list(array_nm))
-	vocab_size = 100
-	encoded_docs = [one_hot(d, vocab_size) for d in list_array]
-	max_length = 4
+	event=pd.DataFrame(unique_vals)
+	array_nm=event[0].unique()
+	list_array=list(array_nm)
+	vocab_size = 50
+	encoded_docs = [one_hot(str(d), vocab_size) for d in list_array]
+	max_length = 2
 	padded_docs1 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
 	unique=embeded['event_type_1'].unique()
 	unique_vals=np.append(unique,embeded['event_type_2'].unique())
-	event=pd.DataFrame(unique_vals,)
-	array_nm=event['event'].unique()
-	list_array=str(list(array_nm))
-	vocab_size = 100
-	encoded_docs = [one_hot(d, vocab_size) for d in list_array]
-	max_length = 4
+	event=pd.DataFrame(unique_vals)
+	array_nm=event[0].unique()
+	list_array=list(array_nm)
+	vocab_size = 50
+	encoded_docs = [one_hot(str(d), vocab_size) for d in list_array]
+	max_length = 1
 	padded_docs2 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
-	values=df[df['snap_CA','snap_TX']]
-	return new_df,padded_docs1,padded_docs2,values
-def sales:
-	sales=pd.read_csv('sell_prices.csv')
-	sales['dept_id']=str(sales['item_id'])
-	def remove(x):
-    	value=x.split('_')
-   	    dept=value[0]+"_"+value[1]
-    	return dept
+	values=cal[['snap_CA','snap_TX','snap_WI']]
+	return new_cal,padded_docs1,padded_docs2,values
+def features_normalize(sales,cal):
+    sales['dept_id']=str(sales['item_id'])
+    def remove(x):
+        value=x.split('_')
+        dept=value[0]+"_"+value[1]
+        return dept
     sales['dept']=sales['item_id'].apply(remove)
     price_sum=pd.DataFrame(sales.groupby('wm_yr_wk')['sell_price'].sum())
     scaler = MinMaxScaler()
     scaler.fit(price_sum)
-    price_sum['normalized']=scaler.transform(price_sum)
+    price_sum['normalized_price_time']=scaler.transform(price_sum)
+    price_sum.drop('sell_price',axis=1,inplace=True)
     x=pd.DataFrame(sales.groupby('dept')['sell_price'].unique())
-	x.reset_index(inplace=True)
-	def recive(v):
+    x.reset_index(inplace=True)
+    def recive(v):
     	sum=0
     	for i in v:
-        sum+=i
+            sum+=i
     	return round(sum,2)
-
-	x['summed']=x['sell_price'].apply(recive)
-	scaler = MinMaxScaler()
-	x.set_index(keys='dept',inplace=True)
-	x.drop('sell_price',inplace=True,axis=1)
-	scaler.fit(x)
-	x['transformed']=scaler.transform(x)
-	return price_sum,x
-def sales_validation:
-	sales_eval=pd.read_csv('sales_train_validation.csv')
-	TARGET='sales'
-	index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
-	sales_eval = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
-	temp_df = sales_eval[['id','d',TARGET]]
-	#lag=1
-	i=1
-	print('Shifting:', i)
-	temp_df['lag_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))	
-	#Moving avg=(7,28)
-	temp_df1 = sales_eval[['id','d','sales']]
-	for i in [7,28]:
-    	print('Rolling period:', i)
-    	temp_df['rolling_mean_'+str(i)] = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
-    	temp_df['rolling_std_'+str(i)]  = temp_df1.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
-    	return temp_df
+    x['summed_sellprice']=x['sell_price'].apply(recive)
+    scaler = MinMaxScaler()
+    x.set_index(keys='dept',inplace=True)
+    x.drop('sell_price',inplace=True,axis=1)
+    scaler.fit(x)
+    x['normalized_price_dept']=scaler.transform(x)
+    price_sum.reset_index(inplace=True)
+    price_sum=pd.merge(price_sum,cal[['date','wm_yr_wk']],on='wm_yr_wk',how='left')
+    price_sum.drop(['wm_yr_wk'],axis=1,inplace=True)
+    x.reset_index(inplace=True)
+    x.drop(['dept'],axis=1,inplace=True)
+    return price_sum,x
+def features_lag(sales_eval):
+    TARGET='sales'
+    index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
+    sales_eval_1 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
+    temp_df = sales_eval_1[['id','d',TARGET]]
+    #lag=1
+    i=1
+    print('Shifting:', i)
+    temp_df['lag_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))
+    temp_df=pd.concat([temp_df,sales_eval_1['item_id']],axis=1)
+    return temp_df
+def features_rolling(sales_eval):
+    TARGET='sales'
+    index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
+    sales_eval_2 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
+    temp_df = sales_eval_2[['id','d','sales']]
+    #start_time = time.time()
+    for i in [7,28]:
+        print('Rolling period:', i)
+        temp_df['rolling_mean_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
+        temp_df['rolling_std_'+str(i)]  = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
+    temp_df=pd.concat([temp_df,sales_eval_2['item_id']],axis=1)
+    return temp_df
+def features_embed(sales_eval):
+    index_cols=['item_id','dept_id','cat_id','store_id','state_id']
+    unique_vals=[]
+    for i in index_cols:
+        unique_vals.append(sales_eval[i].unique())
+    d=pd.DataFrame(unique_vals).transpose()
+    d.columns=['item_id','dept_id','cat_id','store_id','state_id']
+    d=d.astype(str)
+    for i in d.columns:
+        v=list(d[i].dropna())
+        vocab_size=len(v)
+        encoded_docs = [one_hot(x, vocab_size) for x in v]
+        max_length = 1
+        padded_docs1 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
+        d[i+"_encoded"]=padded_docs1
+    return d
+    
 '''
  
   
