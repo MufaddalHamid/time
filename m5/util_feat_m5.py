@@ -259,10 +259,10 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
-sales_eval=pd.read_csv('sales_train_validation.csv')
+'''sales_eval=pd.read_csv('sales_train_validation.csv')
 cal=pd.read_csv('calendar.csv')
-sales=pd.read_csv('sell_prices.csv')
-def features_time_basic():
+sales=pd.read_csv('sell_prices.csv')'''
+def features_time_basic(cal):
 	cal['date'] = pd.to_datetime(cal['date'])
 	cal['year'] = cal['date'].dt.year
 	cal['month'] = cal['date'].dt.month
@@ -295,7 +295,7 @@ def features_time_basic():
 	padded_docs2 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
 	values=cal[['snap_CA','snap_TX','snap_WI']]
 	return new_cal,padded_docs1,padded_docs2,values
-def features_normalize():
+def features_normalize(sales,cal):
     sales['dept_id']=str(sales['item_id'])
     def remove(x):
         value=x.split('_')
@@ -326,7 +326,7 @@ def features_normalize():
     x.reset_index(inplace=True)
     x.drop(['dept'],axis=1,inplace=True)
     return price_sum,x
-def features_lag():
+def features_lag(sales_eval):
     TARGET='sales'
     index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
     sales_eval_1 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
@@ -337,7 +337,7 @@ def features_lag():
     temp_df['lag_'+str(i)] = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))
     temp_df=pd.concat([temp_df,sales_eval_1['item_id']],axis=1)
     return temp_df
-def features_rolling():
+def features_rolling(sales_eval):
     TARGET='sales'
     index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
     sales_eval_2 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
@@ -349,7 +349,7 @@ def features_rolling():
         temp_df['rolling_std_'+str(i)]  = temp_df.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
     temp_df=pd.concat([temp_df,sales_eval_2['item_id']],axis=1)
     return temp_df
-def features_embed():
+def features_embed(sales_eval):
     index_cols=['item_id','dept_id','cat_id','store_id','state_id']
     unique_vals=[]
     for i in index_cols:
@@ -364,8 +364,7 @@ def features_embed():
         max_length = 1
         padded_docs1 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
         d[i+"_encoded"]=padded_docs1
-    return d.drop(['item_id','dept_id','cat_id','store_id','state_id'],axis=1)
- #end of program
+    return d
   '''
   
   
