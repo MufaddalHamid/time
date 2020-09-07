@@ -470,10 +470,23 @@ def features_generate(dir_in):
 
 def features_to_Paraquet(df,dir_out):
     df.to_parquet(dir_out+"features.paraquet")
+    
+def create_meta_features(df):
+    x=pd.DataFrame(df.columns,df.dtypes)
+    x.reset_index(inplace=True)
+    x.columns=['feattype','featname']
+    x['feattype']="numerical"
+    x['feattype'][x['featname'].str.startswith('embed')]="categorical"
+    x['feattype'][x.featname=="date"]="datetime64[ns]"
+    x.to_csv('meta_features.csv')
+
+
 
 if __name__ == "__main__":
 	df=features_generate()
 	features_to_Paraquet(df)
+	create_meta_features(df)
+	
 
 	
 '''
