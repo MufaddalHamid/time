@@ -445,7 +445,7 @@ def test_old():
 	df_metrics.to_csv("run_eval.csv")
 """
 '''
-from new_prod import *
+from util_feat_m5 import *
 def features_generate(dir_in):
     sales_eval=pd.read_csv( dir_in + '/sales_train_validations.csv')
     cal=pd.read_csv( dir_in +'/calendar.csv')
