@@ -466,6 +466,10 @@ def features_generate(dir_in):
     df=pd.concat([comb_1,comb_2,comb_3,sales_val_embed],axis=1)
     df.set_index(keys='item_id')
     df.drop('item_id',axis=1,inplace=True)
+    update_meta_csv(comb_1.columns,"basic_time")
+    update_meta_csv(comb_2.columns,"normalized")
+    update_meta_csv(comb_3.columns,"lag_rolled")
+    update_meta_csv(sales_val_embed.columns,"emebed_values")
     return df
 
 def features_to_Paraquet(df,dir_out):
