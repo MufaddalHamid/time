@@ -446,50 +446,67 @@ def test_old():
 """
 '''
 from util_feat_m5 import *
-def features_generate(dir_in):
-    sales_eval=pd.read_csv( dir_in + '/sales_train_validations.csv')
-    cal=pd.read_csv( dir_in +'/calendar.csv')
-    sales=pd.read_csv(dir_in +'/sell_prices.csv')
-    time_features=features_time_basic(cal)
-    sales_features=features_normalize(sales,cal)
-    sales_val_embed=features_embed(sales_eval)
-    sales_val_lag=features_lag(sales_eval)
-    sales_val_roll=features_rolling(sales_eval)
+from util_feat_m5 import *
+import os
+def update_meta_csv(featnames, filename):
+	meta_csv = pd.DataFrame(columns = ['featname', 'filename'])
+	if os.path.exists('meta_features.csv'):
+		meta_csv = pd.read_csv('meta_features.csv')
+	append_data_dict = {'featname' : [], 'filename' : []}
+	for feat in featnames:
+		if feat not in meta_csv['featname'].unique():
+			append_data_dict['filename'].append(filename)
+			append_data_dict['featname'].append(feat)
+		else:
+			meta_csv.loc[meta_csv['featname'] == feat, 'filename'] = filename
+	append_df = pd.DataFrame.from_dict(append_data_dict)
+	meta_csv = meta_csv.append(append_df)
+	meta_csv.to_csv('meta_features.csv', index = False)
+def features_generate():
+    df_train=pd.read_csv('sales_train_validation.csv')
+    df_calendar=pd.read_csv('calendar.csv')
+    df_sales=pd.read_csv('sell_prices.csv')
+    time_features=features_time_basic(df_calendar)
+    sales_features=features_normalize(df_sales,df_calendar)
+    sales_val_embed=features_embed(df_train)
+    sales_val_lag=features_lag(df_train)
+    sales_val_roll=features_rolling(df_train)
     value=pd.DataFrame(time_features[1],columns=['embbed_event_name_1','embed_event_name_2'])
     value_merge=pd.DataFrame(time_features[2],columns=['embed_event_type'])
     merge_values=value.merge(value_merge,left_index=True,right_index=True)
-    comb_1=pd.concat([time_features[0],time_features[3],merge_values],axis=1)
-    comb_2=pd.concat([sales_features[0].reset_index(),sales_features[1].reset_index()],axis=1)
-    comb_2.drop('index',axis=1,inplace=True)
-    comb_3=pd.concat([sales_val_lag,sales_val_roll],axis=1)
-    comb_3.drop(['d','sales','id'],axis=1,inplace=True)
-    df=pd.concat([comb_1,comb_2,comb_3,sales_val_embed],axis=1)
+    df_comb_1=pd.concat([time_features[0],time_features[3],merge_values],axis=1)
+    df_comb_2=pd.concat([sales_features[0].reset_index(),sales_features[1].reset_index()],axis=1)
+    df_comb_2.drop('index',axis=1,inplace=True)
+    df_comb_3=pd.concat([sales_val_lag,sales_val_roll],axis=1)
+    df_comb_3.drop(['d','sales','id'],axis=1,inplace=True)
+    df=pd.concat([df_comb_1,df_comb_2,df_comb_3,sales_val_embed],axis=1)
     df.set_index(keys='item_id')
     df.drop('item_id',axis=1,inplace=True)
-    update_meta_csv(comb_1.columns,"basic_time")
-    update_meta_csv(comb_2.columns,"normalized")
-    update_meta_csv(comb_3.columns,"lag_rolled")
-    update_meta_csv(sales_val_embed.columns,"emebed_values")
+    update_meta_csv(df_comb_1.columns,"basic_time")
+    update_meta_csv(df_comb_2.columns,"normalized")
+    update_meta_csv(df_comb_3.columns,"lag_roll")
+    update_meta_csv(sales_val_embed.columns,"emebed")
     return df
 
-def features_to_Paraquet(df,dir_out):
+def features_generate_file(df,dir_out):
     df.to_parquet(dir_out+"features.paraquet")
-    
-def create_meta_features(df):
-    x=pd.DataFrame(df.columns,df.dtypes)
-    x.reset_index(inplace=True)
-    x.columns=['feattype','featname']
-    x['feattype']="numerical"
-    x['feattype'][x['featname'].str.startswith('embed')]="categorical"
-    x['feattype'][x.featname=="date"]="datetime64[ns]"
-    x.to_csv('meta_features.csv')
+
+df=features_generate()
+def create_meta_csv(df):
+    meta_csv=pd.DataFrame(df.columns,df.dtypes)
+    meta_csv.reset_index(inplace=True)
+    meta_csv.columns=['feattype','featname']
+    meta_csv['feattype']="numerical"
+    meta_csv['feattype'][meta_csv['featname'].str.startswith('embed')]="categorical"
+    meta_csv['feattype'][meta_csv.featname=="date"]="datetime64[ns]"
+    meta_csv.to_csv('meta_features.csv')
 
 
 
 if __name__ == "__main__":
 	df=features_generate()
 	features_to_Paraquet(df)
-	create_meta_features(df)
+	#create_meta_features(df)
 	
 
 	
