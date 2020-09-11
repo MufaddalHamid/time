@@ -326,46 +326,45 @@ def features_normalize(sales,cal):
     sellprice_sum.reset_index(inplace=True)
     sellprice_sum.drop(['dept'],axis=1,inplace=True)
     return price_sum,sellprice_sum
-def features_lag(sales_eval):
+def features_lag(train_df):
     TARGET='sales'
     index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
-    sales_eval_1 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
-    df_lag = sales_eval_1[['id','d',TARGET]]
+    train_df_1 = pd.melt(train_df,id_vars = index_columns,var_name = 'd',value_name = TARGET)
+    sales_lag = train_df_1[['id','d',TARGET]]
     #lag=1
     i=1
     print('Shifting:', i)
-    df_lag['lag_'+str(i)] = df_lag.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))
-    df_lag=pd.concat([df_lag,sales_eval_1['item_id']],axis=1)
-    return df_lag
-def features_rolling(sales_eval):
+    sales_lag['lag_'+str(i)] = sales_lag.groupby(['id'])[TARGET].transform(lambda x: x.shift(i))
+    sales_lag=pd.concat([sales_lag,train_df_1['item_id']],axis=1)
+    return sales_lag
+def features_rolling(train_df):
     TARGET='sales'
     index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
-    sales_eval_2 = pd.melt(sales_eval,id_vars = index_columns,var_name = 'd',value_name = TARGET)
-    df_roll = sales_eval_2[['id','d','sales']]
+    sales_eval_2 = pd.melt(train_df,id_vars = index_columns,var_name = 'd',value_name = TARGET)
+    rolling_7_28 = train_df_2[['id','d','sales']]
     #start_time = time.time()
     for i in [7,28]:
         print('Rolling period:', i)
-        df_roll['rolling_mean_'+str(i)] = df_roll.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
-        df_roll['rolling_std_'+str(i)]  = df_roll.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
-    df_roll=pd.concat([df_roll,sales_eval_2['item_id']],axis=1)
-    return df_roll
-def features_embed(sales_eval):
+        rolling_7_28['rolling_mean_'+str(i)] = rolling_7_28.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
+        rolling_7_28['rolling_std_'+str(i)]  = rolling_7_28.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
+    rolling_7_28=pd.concat([rolling_7_28,train_df_2['item_id']],axis=1)
+    return rolling_7_28
+def features_embed(train_df):
     index_cols=['item_id','dept_id','cat_id','store_id','state_id']
     unique_vals=[]
     for i in index_cols:
-        unique_vals.append(sales_eval[i].unique())
-    embed_sales_categorical=pd.DataFrame(unique_vals).transpose()
-    embed_sales_categorical.columns=['item_id','dept_id','cat_id','store_id','state_id']
-    embed_sales_categorical=embed_sales_categorical.astype(str)
+        unique_vals.append(train_df[i].unique())
+    train_df_categorical=pd.DataFrame(unique_vals).transpose()
+    train_df_categorical.columns=['item_id','dept_id','cat_id','store_id','state_id']
+    train_df_categorical=train_df_categorical.astype(str)
     for i in d.columns:
-        v=list(embed_sales_categorical[i].dropna())
+        v=list(train_df_categorical[i].dropna())
         vocab_size=len(v)
         encoded_docs = [one_hot(x, vocab_size) for x in v]
         max_length = 1
         padded_docs1 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
-        embed_sales_categorical[i+"_encoded"]=padded_docs1
-    return embed_sales_categorical
-    
+        train_df_categorical[i+"_encoded"]=padded_docs1
+    return train_df_categorical
   '''
   
   
