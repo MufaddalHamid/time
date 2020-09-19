@@ -444,8 +444,7 @@ def test_old():
 	df_metrics['metric_val'] = pd.Series(pred_mse[:300], index=dataframe.index) 
 	df_metrics.to_csv("run_eval.csv")
 """
-'''
-from util_feat_m5 import *
+'''from util_feat_m5 import *
 import os
 def update_meta_csv(featnames, filename):
 	meta_csv = pd.DataFrame(columns = ['featname', 'filename'])
@@ -499,5 +498,4 @@ def create_meta_features(df):
     meta_csv['feattype'][meta_csv['featname'].str.startswith('embed')]="categorical"
     meta_csv['feattype'][meta_csv.featname=="date"]="datetime64[ns]"
     meta_csv.to_csv('meta_features.csv')
-
 '''
