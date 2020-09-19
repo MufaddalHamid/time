@@ -341,13 +341,13 @@ def features_rolling(train_df):
     TARGET='sales'
     index_columns = ['id','item_id','dept_id','cat_id','store_id','state_id']
     sales_eval_2 = pd.melt(train_df,id_vars = index_columns,var_name = 'd',value_name = TARGET)
-    rolling_7_28 = train_df_2[['id','d','sales']]
+    rolling_7_28 = sales_eval_2[['id','d','sales']]
     #start_time = time.time()
     for i in [7,28]:
         print('Rolling period:', i)
         rolling_7_28['rolling_mean_'+str(i)] = rolling_7_28.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).mean())
         rolling_7_28['rolling_std_'+str(i)]  = rolling_7_28.groupby(['id'])[TARGET].transform(lambda x: x.shift(1).rolling(i).std())
-    rolling_7_28=pd.concat([rolling_7_28,train_df_2['item_id']],axis=1)
+    rolling_7_28=pd.concat([rolling_7_28,sales_eval_2['item_id']],axis=1)
     return rolling_7_28
 def features_embed(train_df):
     index_cols=['item_id','dept_id','cat_id','store_id','state_id']
@@ -357,7 +357,7 @@ def features_embed(train_df):
     train_df_categorical=pd.DataFrame(unique_vals).transpose()
     train_df_categorical.columns=['item_id','dept_id','cat_id','store_id','state_id']
     train_df_categorical=train_df_categorical.astype(str)
-    for i in d.columns:
+    for i in train_df_categorical.columns:
         v=list(train_df_categorical[i].dropna())
         vocab_size=len(v)
         encoded_docs = [one_hot(x, vocab_size) for x in v]
