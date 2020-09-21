@@ -253,7 +253,8 @@ def features_lag(df):
         df['lag_' + str(lag_day)] = df.groupby(['id'])['demand'].transform(lambda x: x.shift(lag_day))
 
     return df[created_cols]
-'''
+
+"""
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -365,7 +366,7 @@ def features_embed(train_df):
         padded_docs1 = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
         train_df_categorical[i+"_encoded"]=padded_docs1
     return train_df_categorical
-  '''
+  """
   
   
   
