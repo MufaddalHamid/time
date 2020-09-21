@@ -444,7 +444,8 @@ def test_old():
 	df_metrics['metric_val'] = pd.Series(pred_mse[:300], index=dataframe.index) 
 	df_metrics.to_csv("run_eval.csv")
 """
-'''from util_feat_m5 import *
+"""
+from util_feat_m5 import *
 import os
 def update_meta_csv(featnames, filename):
 	meta_csv = pd.DataFrame(columns = ['featname', 'filename'])
@@ -460,10 +461,10 @@ def update_meta_csv(featnames, filename):
 	append_df = pd.DataFrame.from_dict(append_data_dict)
 	meta_csv = meta_csv.append(append_df)
 	meta_csv.to_csv('meta_features.csv', index = False)
-def features_generate():
-    train_df=pd.read_csv('sales_train_validation.csv')
-    calendar_df=pd.read_csv('calendar.csv')
-    sales_df=pd.read_csv('sell_prices.csv')
+def features_generate(dir_in):
+    train_df=pd.read_csv(dir_in+'/sales_train_validation.csv')
+    calendar_df=pd.read_csv(dir_in+/'calendar.csv')
+    sales_df=pd.read_csv(dir_in+'/sell_prices.csv')
     time_features=features_time_basic(calendar_df)
     sales_features=features_normalize(sales_df,calendar_df)
     sales_df_embed=features_embed(train_df)
@@ -487,7 +488,7 @@ def features_generate():
     return df
 
 def features_generate_file(df,dir_out):
-    df.to_parquet(dir_out+"features.paraquet")
+    df.to_parquet(dir_out+"/features.paraquet")
 
 df=features_generate()
 def create_meta_features(df):
@@ -498,4 +499,4 @@ def create_meta_features(df):
     meta_csv['feattype'][meta_csv['featname'].str.startswith('embed')]="categorical"
     meta_csv['feattype'][meta_csv.featname=="date"]="datetime64[ns]"
     meta_csv.to_csv('meta_features.csv')
-'''
+"""
